@@ -24,7 +24,9 @@ def obtener_juegos(estado: EstadoJuego | None = None):
     if estado is None:
         filas = conexion.execute("SELECT * FROM juegos").fetchall()
     else:
-        filas = conexion.execute("SELECT * FROM juegos WHERE estado = ?", (estado,)).fetchall()
+        filas = conexion.execute("SELECT * FROM juegos WHERE estado = ?",
+                                  (estado,)
+                                  ).fetchall()
 
     conexion.close()
 
