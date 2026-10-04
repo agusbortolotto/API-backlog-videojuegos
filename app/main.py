@@ -132,3 +132,29 @@ def actualizar_estado_juego(id: int, datos: JuegoActualizarEstado):
     conexion.close()
 
     return dict(fila)
+
+
+@app.delete("/juegos/{id}")
+def eliminar_juego(id: int):
+    conexion = sqlite3.connect(RUTA_DB)
+
+    cursor = conexion.execute(
+        "DELETE FROM juegos WHERE id = ?",
+        (id,),
+    )
+
+    if cursor.rowcount == 0:
+        conexion.rollback()
+        conexion.close()
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Juego no encontrado",
+        )
+
+    conexion.commit()
+    conexion.close()
+
+    return {
+        "mensaje": "Juego eliminado correctamente"
+    }
