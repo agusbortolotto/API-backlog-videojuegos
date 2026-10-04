@@ -39,6 +39,10 @@ class JuegoCrear(BaseModel):
         return self
 
 
+class JuegoActualizarEstado(BaseModel):
+    estado: EstadoJuego
+
+
 app = FastAPI()
 
 
@@ -96,3 +100,35 @@ def crear_juego(juego: JuegoCrear):
         "tienda": juego.tienda,
         "estado": juego.estado,
     }
+
+
+@app.patch("/juegos/{id}")
+def actualizar_estado_juego(id: int, datos: JuegoActualizarEstado):
+    conexion = sqlite3.connect(RUTA_DB)
+
+    cursor = conexion.execute(
+        "UPDATE juegos SET estado = ? WHERE id = ?",
+        (datos.estado, id),
+    )
+
+    if cursor.rowcount == 0:
+        conexion.rollback()
+        conexion.close()
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Juego no encontrado",
+        )
+
+    conexion.commit()
+
+    conexion.row_factory = sqlite3.Row
+
+    fila = conexion.execute(
+        "SELECT * FROM juegos WHERE id = ?",
+        (id,),
+    ).fetchone()
+
+    conexion.close()
+
+    return dict(fila)
