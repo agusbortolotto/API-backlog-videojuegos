@@ -29,7 +29,7 @@ def base_datos_prueba(tmp_path, monkeypatch):
 def test_raiz():
     respuesta = client.get("/")
 
-    assert respuesta.status_code == 201
+    assert respuesta.status_code == 200
     assert respuesta.json() == {
         "mensaje": "API funcionando correctamente"
     }
