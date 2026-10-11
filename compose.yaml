@@ -1,0 +1,11 @@
+services:
+  api:
+    build: .
+    image: api-backlog:local
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - backlog_data:/app/database
+
+volumes:
+  backlog_data:
