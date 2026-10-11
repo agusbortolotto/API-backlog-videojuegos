@@ -196,3 +196,33 @@ def test_rechaza_filtro_estado_invalido(base_datos_prueba):
     respuesta = client.get("/juegos?estado=pausado")
 
     assert respuesta.status_code == 422
+
+def test_arranque_inicializa_db(tmp_path, monkeypatch):
+    ruta_db = tmp_path / "arranque.db"
+    monkeypatch.setattr(main, "RUTA_DB", ruta_db)
+
+    assert not ruta_db.exists()
+
+    with TestClient(main.app) as cliente:
+        assert ruta_db.exists()
+
+        respuesta = cliente.get("/juegos")
+        assert respuesta.status_code == 200
+        assert respuesta.json() == []
+
+        conexion = sqlite3.connect(ruta_db)
+        try:
+            indices = {
+                fila[0]
+                for fila in conexion.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'index'"
+                )
+            }
+            assert {"control_PC", "control_consola"} <= indices
+        finally:
+            conexion.close()
+
+    with TestClient(main.app) as cliente:
+        respuesta = cliente.get("/juegos")
+        assert respuesta.status_code == 200
+        assert respuesta.json() == []

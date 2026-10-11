@@ -1,4 +1,5 @@
 import sqlite3
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
 
@@ -10,6 +11,18 @@ PlataformaJuego = Literal["PlayStation", "Xbox", "Switch", "PC"]
 TiendaJuego = Literal["Steam", "Epic Games", "GOG"]
 
 RUTA_DB = Path(__file__).resolve().parent.parent / "database" / "backlog.db"
+RUTA_SCHEMA = RUTA_DB.with_name("schema.sql")
+
+def inicializar_db():
+    schema = RUTA_SCHEMA.read_text(encoding="utf-8")
+
+    conexion = sqlite3.connect(RUTA_DB)
+
+    try:
+        conexion.executescript(schema)
+        conexion.commit()
+    finally:
+        conexion.close()
 
 
 class JuegoCrear(BaseModel):
@@ -43,7 +56,13 @@ class JuegoActualizarEstado(BaseModel):
     estado: EstadoJuego
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    inicializar_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/")

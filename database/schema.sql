@@ -1,4 +1,4 @@
-CREATE TABLE juegos ( 
+CREATE TABLE IF NOT EXISTS juegos (
     id INTEGER PRIMARY KEY, 
     titulo TEXT NOT NULL CHECK (TRIM(titulo) != ''), 
     plataforma TEXT NOT NULL CHECK (plataforma IN ('PC', 'PlayStation', 'Xbox', 'Switch')), 
@@ -19,10 +19,6 @@ CREATE TABLE juegos (
 )
 );
 
-CREATE UNIQUE INDEX control_PC 
-ON juegos (titulo, plataforma, tienda) 
-WHERE plataforma = 'PC';
+CREATE UNIQUE INDEX IF NOT EXISTS control_PC ON juegos(titulo, plataforma, tienda) WHERE plataforma = 'PC';
 
-CREATE UNIQUE INDEX control_consola 
-ON juegos (titulo, plataforma) 
-WHERE plataforma != 'PC';
+CREATE UNIQUE INDEX IF NOT EXISTS control_consola ON juegos(titulo, plataforma) WHERE plataforma != 'PC';
