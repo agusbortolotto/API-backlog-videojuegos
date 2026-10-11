@@ -26,3 +26,6 @@ jobs:
 
       - name: Ejecutar tests
         run: python -m pytest -q
+
+      - name: Construir imagen Docker
+        run: docker build -t api-backlog:ci .
