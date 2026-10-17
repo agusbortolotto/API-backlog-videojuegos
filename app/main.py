@@ -1,10 +1,13 @@
 import sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
+from time import perf_counter
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, status
 from pydantic import BaseModel, field_validator, model_validator
+
+from app.logging_config import configurar_logger
 
 EstadoJuego = Literal["sin jugar", "jugando", "terminado", "abandonado"]
 PlataformaJuego = Literal["PlayStation", "Xbox", "Switch", "PC"]
@@ -63,6 +66,36 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+
+logger = configurar_logger()
+
+
+@app.middleware("http")
+async def registrar_peticion(request: Request, call_next):
+    inicio = perf_counter()
+    status_code = 500
+
+    try:
+        respuesta = await call_next(request)
+        status_code = respuesta.status_code
+        return respuesta
+    finally:
+        duracion_ms = round((perf_counter() - inicio) * 1000, 2)
+
+        datos = {
+            "path": request.url.path,
+            "status_code": status_code,
+            "method": request.method,
+            "duration_ms": duracion_ms,
+        }
+
+        if status_code >= 500:
+            logger.error("Petición completada con error", extra=datos)
+        elif status_code >= 400:
+            logger.warning("Petición rechazada", extra=datos)
+        else:
+            logger.info("Petición completada", extra=datos)
 
 
 @app.get("/")
