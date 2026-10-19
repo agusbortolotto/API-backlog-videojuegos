@@ -4,8 +4,26 @@ services:
     image: api-backlog:local
     ports:
       - "127.0.0.1:8001:8000"
+    labels:
+      telemetry.service: api-backlog
     volumes:
       - backlog_data:/app/database
 
+  alloy:
+    image: grafana/alloy:v1.21.0
+    profiles:
+      - observabilidad
+    env_file:
+      - .env
+    command:
+      - run
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./observability/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy_data:/var/lib/alloy/data
+
 volumes:
   backlog_data:
+  alloy_data:
