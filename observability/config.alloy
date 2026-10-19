@@ -1,0 +1,29 @@
+discovery.docker "backlog" {
+  host = "unix:///var/run/docker.sock"
+
+  filter {
+    name   = "label"
+    values = ["telemetry.service=api-backlog"]
+  }
+}
+
+loki.source.docker "backlog" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.backlog.targets
+  labels     = {
+    service_name = "api-backlog",
+    environment  = "local",
+  }
+  forward_to = [loki.write.grafanacloud.receiver]
+}
+
+loki.write "grafanacloud" {
+  endpoint {
+    url = sys.env("GRAFANA_LOKI_URL")
+
+    basic_auth {
+      username = sys.env("GRAFANA_LOKI_USER")
+      password = sys.env("GRAFANA_LOKI_TOKEN")
+    }
+  }
+}
