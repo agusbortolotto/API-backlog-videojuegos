@@ -119,3 +119,9 @@ docker compose --profile observabilidad down
 
 Sin `-v`, se conservan los volúmenes de SQLite y del recolector.
 Los registros ya enviados permanecen en Grafana Cloud según su retención.
+
+## Dashboard HTTP
+
+El dashboard propio incluye tráfico, latencia p50/p95 y errores HTTP 4xx/5xx.
+La definición exportada, las consultas, las instrucciones de importación y la
+prueba de fallo controlado están en [observability/README.md](observability/README.md).
