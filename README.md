@@ -3,6 +3,60 @@
 API desarrollada con FastAPI y SQLite para registrar videojuegos,
 consultarlos, actualizar su estado y eliminarlos.
 
+## Desarrollo local y pruebas
+
+Requisito: Python 3.13.
+
+Clonar el repositorio y entrar en su carpeta:
+
+```bash
+git clone https://github.com/agusbortolotto/API-backlog-videojuegos.git
+cd API-backlog-videojuegos
+```
+
+Crear y activar un entorno virtual en macOS o Linux:
+
+```bash
+python3.13 -m venv .venv
+source .venv/bin/activate
+```
+
+Comprobar la versión e instalar las dependencias de desarrollo:
+
+```bash
+python --version
+python -m pip install -r requirements-dev.txt
+```
+
+La versión mostrada debe ser Python 3.13.x. En macOS, `python3`
+puede apuntar a otra versión; por eso se utiliza `python3.13`
+al crear el entorno.
+
+Ejecutar los controles:
+
+```bash
+ruff check app tests
+python -m pytest -q
+git diff --check
+```
+
+La suite actual contiene 18 tests que cubren validaciones de datos,
+operaciones de la API, inicialización de SQLite y logs JSON.
+
+Para iniciar la API localmente:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+- API: http://127.0.0.1:8000
+- Swagger: http://127.0.0.1:8000/docs
+
+La aplicación crea automáticamente la base y su esquema al arrancar.
+No se necesitan credenciales de Grafana para ejecutar la API ni los tests.
+
+Detener el servidor con Ctrl+C.
+
 ## Ejecutar con Docker
 
 Requisitos: Docker y Docker Compose disponibles.
@@ -53,6 +107,59 @@ La base es `python:3.13.16-slim-bookworm`.
 La aplicación se ejecuta con un usuario sin privilegios.
 Las dependencias se copian antes que el código para aprovechar la caché.
 `.dockerignore` excluye el entorno virtual local y las bases de datos.
+
+## Ejecutar la imagen publicada en Docker Hub
+
+Las imágenes se publican en el repositorio público:
+
+https://hub.docker.com/r/agusbortolotto/api-backlog-videojuegos
+
+Para descargar la versión 1.1.0:
+
+```bash
+docker pull agusbortolotto/api-backlog-videojuegos:1.1.0
+```
+
+Ejecutarla:
+
+```bash
+docker run --rm --name api-backlog-release \
+  -p 127.0.0.1:8002:8000 \
+  agusbortolotto/api-backlog-videojuegos:1.1.0
+```
+
+- API: http://127.0.0.1:8002
+- Swagger: http://127.0.0.1:8002/docs
+- Listado: http://127.0.0.1:8002/juegos
+
+No es necesario clonar el repositorio ni instalar Python para esta
+ejecución. Docker Desktop debe estar iniciado si se utiliza macOS.
+
+La base SQLite se crea automáticamente dentro del contenedor.
+Este comando no monta un volumen: al detenerlo con Ctrl+C, el
+contenedor y sus datos se eliminan. Para conservar datos, utilizar
+la configuración de Compose documentada anteriormente.
+
+### Versionado y publicación
+
+Se utiliza Semantic Versioning: MAJOR.MINOR.PATCH.
+
+Al publicar una release en GitHub, por ejemplo `v1.1.0`, se ejecuta
+el workflow de publicación:
+
+1. Valida el código mediante Ruff, pytest y construcción Docker.
+2. Si las validaciones pasan, construye y publica la imagen
+   con la etiqueta `1.1.0`.
+3. Publica soporte para linux/amd64 y linux/arm64.
+
+El tag Git identifica el código de la release y los metadatos
+de la imagen incluyen información de su origen. El workflow
+no genera la etiqueta `latest`.
+
+La versión 1.1.0 incorpora los logs HTTP estructurados en JSON.
+La configuración de Alloy y el dashboard se encuentran en el
+repositorio. Alloy se ejecuta mediante Compose y el dashboard se importa
+en Grafana siguiendo las instrucciones de observabilidad.
 
 ## Observabilidad con Grafana Cloud
 
@@ -125,3 +232,9 @@ Los registros ya enviados permanecen en Grafana Cloud según su retención.
 El dashboard propio incluye tráfico, latencia p50/p95 y errores HTTP 4xx/5xx.
 La definición exportada, las consultas, las instrucciones de importación y la
 prueba de fallo controlado están en [observability/README.md](observability/README.md).
+
+## Informe técnico
+
+El [informe técnico](docs/informe-tecnico.md) describe la arquitectura
+del pipeline, las decisiones de diseño, la aplicación de DevOps y Lean,
+los experimentos controlados y los resultados de validación.
